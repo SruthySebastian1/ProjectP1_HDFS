@@ -1,0 +1,292 @@
+                                                                                            PROJECT - P1
+                                                                                        
+                                                                                   HDFS AND HIVE QUERIES
+
+
+------create database mrt------
+create database mrt;
+use mrt;
+
+
+------copy csv to hdfs-----
+hdfs dfs -put movies.csv /projectp1/movie
+hdfs dfs -put ratings.csv /projectp1/rate
+hdfs dfs -put tags.csv /projectp1/tag
+
+
+-----create Tables and Load data to tables----------
+-----movies_t----
+create external table if not exists movies_t(movieid int comment 'Id of Movie',
+title string comment 'Movie Title',
+genres string comment 'Movie Genre')
+comment 'This is MOVIES table..'
+row format delimited
+fields terminated by ','
+location '/projectp1/movie'
+TBLPROPERTIES("skip.header.line.count"="1");
+
+LOAD DATA INPATH '/projectp1/movie/movies.csv'
+INTO TABLE mrt.movies_t;
+
+
+-----ratings_t-----
+create external table if not exists ratings_t(userId int comment 'User Id',
+movieId int comment 'Movie Id',
+rating int comment 'Movie Ratings',
+`timestamps` bigint comment 'Time Stamp')
+comment 'This is RATINGS table..'
+row format delimited
+fields terminated by ','
+location '/projectp1/rate'
+TBLPROPERTIES("skip.header.line.count"="1");
+
+LOAD DATA INPATH '/projectp1/rate/ratings.csv'
+INTO TABLE mrt.ratings_t;
+
+-----tags_t-----
+create external table if not exists tags_t(userId int comment 'User Id',
+movieId int comment 'Movie Id',
+tag string comment 'Movie Tags',
+timestamps bigint comment 'Time Stamp')
+comment 'This is TAGS table..'
+row format delimited
+fields terminated by ','
+location '/projectp1/tag'
+TBLPROPERTIES("skip.header.line.count"="1");
+ 
+LOAD DATA INPATH '/projectp1/tag/tags.csv'
+INTO TABLE mrt.tags_t;
+
+---------------------------------------------------
+
+BUCKETING:
+set hive.enforce.bucketing = true;
+
+--------------------------------------------------QUERIES-----------------------------------------------------------------------------------
+ set hive.cli.print.header=true;
+
+
+01. first 5 entries from movies table
+SELECT * FROM movies_t LIMIT 5;
+
+
+02. number of unique movies
+SELECT COUNT (DISTINCT title) AS Total_Distinct_Movies
+FROM movies_t;
+
+
+03. summary of ratings data
+
+desc ratings_t
+
+select min(rating) AS MinimumRating, 
+max(rating) AS MaximumRating,
+avg(rating) AS AverageRating,
+count (distinct userId) AS DistinctUsers,
+count (distinct movieId) AS DistinctMovies
+from ratings_t;
+
+
+04. minimum rating given to a movie
+select min(rating) as Min_Ratings
+from ratings_t;
+
+
+05. maximum rating given to a movie
+select max(rating) as Maximum_ratings
+from ratings_t;
+
+
+06. is any row null in tags
+select * from tags_t
+where tag is null
+and userId is null
+and movieId is null
+and timestamps is null ;
+ 
+
+07. number of unique tags 
+select count (distinct tag) from tags_t;
+
+
+08. drop null rows from tags and create another table of the resulting rows
+create table tags_new as select *
+from tags_t  
+where movieId is not null 
+and userId is not null
+and tag is not null
+and timestamps is not null;
+
+
+09. filtering to get the list of drama movies
+SELECT * FROM movies_t  
+WHERE genres RLIKE 'Drama'  limit 10;
+
+
+10. total number of drama movies
+SELECT COUNT( * ) as Number_of_Drama
+FROM movies_t
+where genres Rlike 'Drama';
+
+
+11. filtering to get the list of comedy movies
+SELECT * FROM movies_t  
+WHERE genres RLIKE 'Comedy'  limit 10;
+
+
+12. total no. of comedy movies
+SELECT COUNT( * ) as Number_of_Comedy
+FROM movies_t
+where genres Rlike 'Comedy';
+
+
+13. search movie id by tag search
+select movieId, tag 
+from tags_t
+where tag=='bollywood' limit 10;
+
+
+14. displays first 5 data from ratings table
+select * from ratings_t limit 5;
+
+
+15. merging two tables movies and ratings into a new table without the "timestamp" column from the ratings table.
+create table movies_new1 as 
+select m.movieid ,m.title,m.genres, r.userId, r.rating
+from movies_t m
+join ratings_t r on r.movieId=m.movieid limit 20;
+
+
+16. display high rated movies (rating > 4)
+select r.rating, m.title 
+from ratings_t r
+join movies_t m on m.movieid=r.movieId
+where r.rating>4 
+order by m.title desc limit 10;
+
+
+17. display low rated movies (rating < 4)
+select r.rating , m.title 
+from ratings_t r
+join movies_t m on m.movieid=r.movieId
+where r.rating<4 
+order by m.title desc limit 10;
+
+
+18. total number of unique movie genres
+SELECT COUNT (DISTINCT title) AS Total_distinct_movies
+FROM movies_t;
+
+
+19. top 25 most rated movies
+select m.title,count(r.movieId) as cnt
+from movies_t m, ratings_t r
+where m.movieid=r.movieId
+group by r.movieid, m.title
+order by cnt desc limit 25; 
+
+20. slicing out columns to display only title and genres columns from movies table
+select title , genres
+from movies_t
+order by title desc limit 10;
+
+
+21. extract year from` title of the movie
+SELECT
+from_unixtime(timestamps,'Y') 
+FROM 
+tags_t limit 20;
+
+
+22. count how many times each of genres occur
+select gen, count (gen) 
+from (select explode(split(genres,'\\|')) as gen
+from movies_t) as exp
+group by gen limit 20;
+
+
+23. Which movie received the highest number of ratings?
+select movies_t .movieid, title, count(rating) as cnt
+from movies_t 
+inner join ratings_t on
+movies_t.movieid=ratings_t.movieId
+group by movies_t.movieid, title
+order by cnt desc, title  limit 1;
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+B) PARTITIONS 
+create external table if not exists ratings_partition (userId int comment 'User Id',
+movieId int comment 'Movie Id',
+timestamps bigint comment 'Time Stamp')
+partitioned by (rating int)
+row format delimited
+fields terminated by ','
+location '/projectp1/rate_PART'
+TBLPROPERTIES("skip.header.line.count"="1");
+
+LOAD DATA INPATH '/projectp1/rate_PART/ratings.csv'
+INTO TABLE ratings_partition
+partition(rating=5);
+
+
+SHOW PARTITIONS ratings_partition;
+
+
+Q) SUMMARY
+select min(rating) AS MinimumRating, 
+max(rating) AS MaximumRating,
+avg(rating) AS AverageRating,
+count (distinct userId) AS DistinctUsers,
+count (distinct movieId) AS DistinctMovies
+from ratings_partition;
+
+Q) RATINGS GREATER THAN 4
+select r.rating, m.title 
+from ratings_partition r
+join movies_t m on m.movieid=r.movieId
+where r.rating>4 
+order by m.title desc limit 10;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+C)BUCKETING
+
+set hive.enforce.bucketing = true;
+
+create external table if not exists ratings_bucket(userId int comment 'User Id',
+movieId int comment 'Movie Id',
+rating int comment 'Movie Ratings',
+timestamps bigint comment 'Time Stamp')
+CLUSTERED BY (rating) 
+SORTED BY (rating asc) INTO 2 Buckets
+row format delimited
+fields terminated by ','
+location '/projectp1/rate_BUCKET'
+TBLPROPERTIES("skip.header.line.count"="1");
+
+
+INSERT OVERWRITE TABLE ratings_bucket 
+SELECT * FROM ratings_t;
+
+Q) SUMMARY
+select min(rating) AS MinimumRating, 
+max(rating) AS MaximumRating,
+avg(rating) AS AverageRating,
+count (distinct userId) AS DistinctUsers,
+count (distinct movieId) AS DistinctMovies
+from ratings_bucket;
+
+Q) RATINGS GREATER THAN 4
+select r.rating, m.title 
+from ratings_bucket r
+join movies_t m on m.movieid=r.movieId
+where r.rating>4 
+order by m.title desc limit 10;
+
+
+
+
+ 
