@@ -1,21 +1,35 @@
                                                                                             PROJECT - P1
                                                                                         
-                                                                                   HDFS AND HIVE QUERIES
+                                                                                HDFS AND HIVE QUERIES
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+OBJECTIVE:
+Analyze MovieLens data Import csv data about movies and their ratings into HDFS,
+Create tables from the imported files in Hive. 
+Once imported, create queries to analyze and display data about the movies and their ratings. 
+For e.g.; display first 5 entries from movies table, count number of unique movies, Which movie received the highest number of ratings, top 25 most rated movies etc.
 
+--------------------------------------------------------------------------------------------------------------------------------
+STEPS INVOLVED:
+
+1. CREATE DATABASE
 ------create database mrt------
 create database mrt;
 use mrt;
 
+2. CREATE FOLDER IN HDFS AND COPY FILES FROM LOCAL TO HDFS
+-------create folder-------
+hdfs dfs -mkdir /projectp1/movie
+hdfs dfs -mkdir /projectp1/rate
+hdfs dfs -mkdir /projectp1/tag
 
 ------copy csv to hdfs-----
 hdfs dfs -put movies.csv /projectp1/movie
 hdfs dfs -put ratings.csv /projectp1/rate
 hdfs dfs -put tags.csv /projectp1/tag
 
-
------create Tables and Load data to tables----------
------movies_t----
+3.CREATE EXTERNAL TABLES
+------movies_t--------------
 create external table if not exists movies_t(movieid int comment 'Id of Movie',
 title string comment 'Movie Title',
 genres string comment 'Movie Genre')
@@ -28,8 +42,7 @@ TBLPROPERTIES("skip.header.line.count"="1");
 LOAD DATA INPATH '/projectp1/movie/movies.csv'
 INTO TABLE mrt.movies_t;
 
-
------ratings_t-----
+------ratings_t--------------
 create external table if not exists ratings_t(userId int comment 'User Id',
 movieId int comment 'Movie Id',
 rating int comment 'Movie Ratings',
@@ -43,7 +56,7 @@ TBLPROPERTIES("skip.header.line.count"="1");
 LOAD DATA INPATH '/projectp1/rate/ratings.csv'
 INTO TABLE mrt.ratings_t;
 
------tags_t-----
+-------tags_t----------------
 create external table if not exists tags_t(userId int comment 'User Id',
 movieId int comment 'Movie Id',
 tag string comment 'Movie Tags',
@@ -57,13 +70,17 @@ TBLPROPERTIES("skip.header.line.count"="1");
 LOAD DATA INPATH '/projectp1/tag/tags.csv'
 INTO TABLE mrt.tags_t;
 
----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------
 
 BUCKETING:
 set hive.enforce.bucketing = true;
 
+PARTITIONING EMPLOYED :Static Partitioning
+
 --------------------------------------------------QUERIES-----------------------------------------------------------------------------------
- set hive.cli.print.header=true;
+
+SET HEADER 
+set hive.cli.print.header=true;
 
 
 01. first 5 entries from movies table
@@ -214,7 +231,7 @@ group by movies_t.movieid, title
 order by cnt desc, title  limit 1;
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------
+===============================================================================================
 
 
 B) PARTITIONS 
@@ -250,7 +267,7 @@ join movies_t m on m.movieid=r.movieId
 where r.rating>4 
 order by m.title desc limit 10;
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
+=================================================================================================
 
 C)BUCKETING
 
