@@ -42,9 +42,9 @@ Performing the above action you are enter to VM CLI then do the following comman
 * Create a folder in local VM using command "mkdir folder_name"
 * In this folder clone the git repository from where we pull the dataset using command "git clone 'git repository link' "
 * All dataSet are in a zip file we have to unzip it using command "unzip file_name" (N.B: if you are unzip in the current file ) .
-* To open HiveQL terminal we have have to give command "Hive".
-* Before performing all the above action try to check whether your Ambari which is management platform for hadoop started all services or not.
-* In hive terminal ,check database and if not create one and use the database using following command and after creating database create tables and load data from the folder in   hdfs to the respected table and perform analysis using the query which are mention the txt file "project_1_command.txt"
+* To open HiveQL terminal we have have to give the command "Hive".
+* Before performing all the above action try to check whether if Ambari, which is management platform for hadoop started all services or not.
+* In hive terminal ,check database and if not create one and use the database. After creating the database, create tables and load data and perform analysis using the queries that are specified in the text file "p1.txt"
 
 ### For creating database
 create database mrt;                (#"mrt" is the database name here)
