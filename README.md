@@ -10,28 +10,28 @@ I set up a standalone single node cluster in Hadoop to utilize YARN and HDFS to 
 ## Features
 List of features ready and TODOs for future development using this project some query are solved using hiveQL ,following questions are listed below:
 
-1. first 5 entries from movies table
-2. number of unique movies
-3. summary of ratings data
-4. minimum rating given to a movie
-5. maximum rating given to a movie
-6. is any row null in tags
-7. number of unique tags
-8. drop null rows from tags and create another table of the resulting rows
-9. filtering to get the list of drama movies
-10. total number of drama movies
-11. filtering to get the list of comedy movies
-12. total no. of comedy movies
-13. search movie id by tag search
-14. displays first 5 data from ratings table
-15. merging two tables movies and ratings into a new table without the "timestamp" column from the ratings table.
-16. display high rated movies (rating > 4)
-17. display low rated movies (rating < 4)
-18. total number of unique movie genres
-19. top 25 most rated movies
-20. slicing out columns to display only title and genres columns from movies table
-21. extract year from title of the movie
-22. count how many times each of genres occur
+1. First 5 entries from movies table
+2. Number of unique movies
+3. Summary of ratings data
+4. Minimum rating given to a movie
+5. Maximum rating given to a movie
+6. Is any row null in tags
+7. Number of unique tags
+8. Drop null rows from tags and create another table of the resulting rows
+9. Filtering to get the list of drama movies
+10.Total number of drama movies
+11. Filtering to get the list of comedy movies
+12. Total no. of comedy movies
+13. Search movie id by tag search
+14. Displays first 5 data from ratings table
+15. Merging two tables movies and ratings into a new table without the "timestamp" column from the ratings table.
+16. Display high rated movies (rating > 4)
+17. Display low rated movies (rating < 4)
+18. Total number of unique movie genres
+19. Top 25 most rated movies
+20. Slicing out columns to display only title and genres columns from movies table
+21. Extract year from title of the movie
+22. Count how many times each of genres occur
 23. Which movie received the highest number of ratings?
  
 ## Getting Started
@@ -99,7 +99,7 @@ fields terminated by ','
 location '/projectp1/tag'
 TBLPROPERTIES("skip.header.line.count"="1");
 
-### load data 
+### Load the data 
 * LOAD DATA INPATH '/projectp1/movie/movies.csv'
 INTO TABLE mrt.movies_t;
 
